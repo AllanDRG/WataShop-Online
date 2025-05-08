@@ -1,25 +1,16 @@
-
 rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
     // Allow read and write access to the 'products' collection for development.
-    // WARNING: These rules are very permissive and are NOT suitable for production.
-    // You should secure your database appropriately before deploying.
-    // For more information on securing your data, see:
-    // https://firebase.google.com/docs/firestore/security/get-started
+    // WARNING: Secure these rules before deploying to production!
     match /products/{productId} {
-      allow read: if true;
-      allow write: if true; // Allows create, update, delete
+      allow read, write: if true;
     }
 
-    // Example: More restrictive rules (uncomment and adapt as needed)
-    // match /products/{productId} {
-    //   // Allow anyone to read products
-    //   allow read: if true;
-    //   // Only allow authenticated users to create, update, delete products
-    //   // You might want to further restrict this to specific admin UIDs
-    //   allow write: if request.auth != null;
+    // Example for other collections (you might need to adjust this for users, etc.)
+    // match /users/{userId} {
+    //   allow read, write: if request.auth != null && request.auth.uid == userId;
     // }
 
     // Default deny all other paths

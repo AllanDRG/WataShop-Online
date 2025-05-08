@@ -39,13 +39,32 @@ This is a NextJS starter in Firebase Studio.
     ```
 
 3.  **Configure Firestore Security Rules:**
-    Firebase Firestore requires security rules to control access to your data. For development, you can use permissive rules, but **these must be secured before going to production.**
+    Firebase Firestore requires security rules to control access to your data. The ability to add products depends heavily on these rules. For development, you can use permissive rules, but **these must be secured before going to production.**
     *   Go to your Firebase project in the Firebase Console.
     *   Navigate to **Firestore Database** under the **Build** section.
     *   Click on the **Rules** tab.
-    *   Copy the content of the `firestore.rules` file (located in the root of this project) and paste it into the rules editor.
+    *   Replace the existing content in the rules editor with the following rules (also found in the `firestore.rules` file in the root of this project):
+        ```firestore-rules
+        rules_version = '2';
+
+        service cloud.firestore {
+          match /databases/{database}/documents {
+            // Allow read and write access to the 'products' collection for development.
+            // WARNING: Secure these rules before deploying to production!
+            match /products/{productId} {
+              allow read, write: if true;
+            }
+
+            // Default deny all other paths if not explicitly allowed above.
+            // If you have other collections (e.g., users), add rules for them here.
+            match /{document=**} {
+              allow read, write: if false;
+            }
+          }
+        }
+        ```
     *   Click **Publish**.
-    *   **Important**: Review and update these rules for production to ensure your data is secure. The example rules allow anyone to read and write to the `products` collection. Refer to the [Firebase Firestore Security Rules documentation](https://firebase.google.com/docs/firestore/security/get-started) for more information.
+    *   **Important**: Review and update these rules for production to ensure your data is secure. The example rules allow anyone to read and write to the `products` collection. Refer to the [Firebase Firestore Security Rules documentation](https://firebase.google.com/docs/firestore/security/get-started) for more information. If you still cannot add products after updating the rules, check your browser's developer console for specific error messages.
 
 4.  **Run the development server:**
     ```bash
@@ -58,3 +77,4 @@ This is a NextJS starter in Firebase Studio.
     The application will be available at [http://localhost:9002](http://localhost:9002) by default (as per package.json script).
 
 To get started with customizing the app, take a look at `src/app/page.tsx`.
+
