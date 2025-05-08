@@ -8,12 +8,8 @@ service cloud.firestore {
       allow read, write: if true;
     }
 
-    // Example for other collections (you might need to adjust this for users, etc.)
-    // match /users/{userId} {
-    //   allow read, write: if request.auth != null && request.auth.uid == userId;
-    // }
-
-    // Default deny all other paths
+    // Default deny all other paths if not explicitly allowed above.
+    // If you have other collections (e.g., users), add rules for them here.
     match /{document=**} {
       allow read, write: if false;
     }
