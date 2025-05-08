@@ -32,10 +32,14 @@ export async function addProductAction(formData: ProductFormData) {
       revalidatePath('/admin/add-product'); // Revalidate the add product page itself
       return { success: true, message: "Product added successfully!" };
     } else {
-      // Use the specific error from Firestore if available, otherwise a generic message.
-      return { success: false, message: firestoreError || "Failed to add product to database. An unknown error occurred." };
+      // If newProductId is null, an error must have occurred.
+      // firestoreError should be a non-empty string from addProductToFirestore.
+      const finalMessage = (firestoreError && firestoreError.trim() !== "")
+        ? firestoreError
+        : "Failed to add product. An unknown internal error occurred during the database operation.";
+      return { success: false, message: finalMessage };
     }
-  } catch (error) { // This catch block handles errors within addProductAction itself or if addProductToFirestore re-throws an error.
+  } catch (error) { 
     console.error("addProductAction unexpected error:", error);
     const errorMessage = error instanceof Error ? error.message : String(error);
     return { success: false, message: `Action failed: ${errorMessage}` };

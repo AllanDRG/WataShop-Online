@@ -4,27 +4,42 @@ import type { Product, ProductFormData } from '@/types/product';
 
 // Configuration directly from user prompt
 const firebaseConfig = {
-  apiKey: "AIzaSyC5k9GIA0MHZWlpDwerHVwFkpEVb_YzRCA",
-  authDomain: "whatashop-ef462.firebaseapp.com",
-  databaseURL: "https://whatashop-ef462-default-rtdb.firebaseio.com",
-  projectId: "whatashop-ef462",
-  storageBucket: "whatashop-ef462.appspot.com", 
-  messagingSenderId: "291121568560",
-  appId: "1:291121568560:web:79ae47a1cf70f3197606f5"
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  databaseURL: process.env.NEXT_PUBLIC_FIREBASE_DATABASE_URL,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID
 };
 
 let app: FirebaseApp | undefined;
 let db: any; 
 
+// Validate essential configuration first
+if (!firebaseConfig.apiKey) {
+  console.error(
+    "Firebase API Key (NEXT_PUBLIC_FIREBASE_API_KEY) is not configured. Check .env.local."
+  );
+  // Depending on how critical Firebase is at init, you might throw an error
+  // or allow the app to load in a degraded state. For this app, it's critical.
+  // throw new Error("Firebase API Key is not configured.");
+} else if (!firebaseConfig.projectId) {
+   console.error(
+    "Firebase Project ID (NEXT_PUBLIC_FIREBASE_PROJECT_ID) is not configured. Check .env.local."
+  );
+  // throw new Error("Firebase Project ID is not configured.");
+}
+
+
 if (!getApps().length) {
-  if (!firebaseConfig.apiKey || !firebaseConfig.projectId) {
-    console.error(
-      "Firebase API Key or Project ID is missing in the hardcoded configuration. This is unexpected."
-    );
-  }
   try {
-    app = initializeApp(firebaseConfig);
-    db = getFirestore(app);
+    if (firebaseConfig.apiKey && firebaseConfig.projectId) { // Only initialize if config is present
+        app = initializeApp(firebaseConfig);
+        db = getFirestore(app);
+    } else {
+        console.error("Firebase initialization skipped due to missing API Key or Project ID.");
+    }
   } catch (error) {
     console.error("Firebase initialization error:", error);
   }
@@ -83,12 +98,18 @@ export async function addProductToFirestore(productData: ProductFormData): Promi
       price: Number(productData.price) // Ensure price is stored as a number
     };
     const docRef = await addDoc(productsCol, dataToSave);
-    return { productId: docRef.id };
-  } catch (error: any) { // Catch as any to access error.message or other properties
+
+    if (docRef && typeof docRef.id === 'string' && docRef.id.length > 0) {
+        return { productId: docRef.id };
+    } else {
+        const errorMessage = "Failed to retrieve a valid product ID after adding to Firestore; the document reference or ID was unexpectedly missing or invalid.";
+        console.error(errorMessage, "Raw docRef:", docRef);
+        return { productId: null, error: errorMessage };
+    }
+
+  } catch (error: any) { 
     const errorMessage = error.message || "Unknown error adding product to Firestore.";
     console.error("Error adding product to Firestore (check Firestore rules, data, and internet connection): ", error);
-    // It's helpful to log the full error object or relevant parts like error.code if available
-    // For FirebaseError, error.code can be very informative (e.g., 'permission-denied')
     const specificError = error.code ? `Firestore error (${error.code}): ${errorMessage}` : `Firestore error: ${errorMessage}`;
     return { productId: null, error: specificError }; 
   }
