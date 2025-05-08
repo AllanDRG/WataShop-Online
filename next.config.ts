@@ -43,6 +43,12 @@ const nextConfig: NextConfig = {
         hostname: 'cdn.mos.cms.futurecdn.net',
         port: '',
         pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'www.steren.com.gt',
+        port: '',
+        pathname: '/**',
       }
     ],
   },
