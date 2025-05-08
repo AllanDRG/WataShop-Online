@@ -11,6 +11,19 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
+// Validate essential configuration
+if (!firebaseConfig.apiKey) {
+  throw new Error(
+    "Firebase API Key (NEXT_PUBLIC_FIREBASE_API_KEY) is not configured. Please set it in your .env.local file."
+  );
+}
+if (!firebaseConfig.projectId) {
+  throw new Error(
+    "Firebase Project ID (NEXT_PUBLIC_FIREBASE_PROJECT_ID) is not configured. Please set it in your .env.local file."
+  );
+}
+
+
 let app: FirebaseApp;
 if (!getApps().length) {
   app = initializeApp(firebaseConfig);
@@ -40,6 +53,7 @@ export async function getProducts(): Promise<Product[]> {
   } catch (error) {
     console.error("Error fetching products: ", error);
     // In a real app, you might want to throw the error or handle it more gracefully
+    // For now, returning empty array and logging helps identify if this is the source of an issue on the page
     return []; 
   }
 }
@@ -47,7 +61,12 @@ export async function getProducts(): Promise<Product[]> {
 export async function addProductToFirestore(productData: ProductFormData): Promise<string | null> {
   try {
     const productsCol = collection(db, PRODUCTS_COLLECTION);
-    const docRef = await addDoc(productsCol, productData);
+    // Ensure price is stored as a number if it's coming from a form
+    const dataToSave = {
+      ...productData,
+      price: Number(productData.price)
+    };
+    const docRef = await addDoc(productsCol, dataToSave);
     return docRef.id;
   } catch (error) {
     console.error("Error adding product: ", error);
