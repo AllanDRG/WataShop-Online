@@ -14,7 +14,7 @@ interface ProductCardProps {
 
 // Fallback image if product.imageUrl is empty or invalid
 const FALLBACK_IMAGE_URL = "https://via.placeholder.com/400x400.png?text=No+Image"; 
-const FIXED_STORE_PHONE_NUMBER = "573001234567"; // Fixed store phone number
+const FIXED_STORE_PHONE_NUMBER = "50245038620"; // Updated store phone number for Guatemala
 
 export default function ProductCard({ product }: ProductCardProps) {
   const [currentImageUrl, setCurrentImageUrl] = useState(product.imageUrl || FALLBACK_IMAGE_URL);
@@ -79,3 +79,4 @@ export default function ProductCard({ product }: ProductCardProps) {
     </Card>
   );
 }
+
