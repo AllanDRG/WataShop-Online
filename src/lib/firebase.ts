@@ -8,21 +8,16 @@ const firebaseConfig = {
   authDomain: "whatashop-ef462.firebaseapp.com",
   databaseURL: "https://whatashop-ef462-default-rtdb.firebaseio.com",
   projectId: "whatashop-ef462",
-  storageBucket: "whatashop-ef462.appspot.com", // Corrected from firebasestorage.app
+  storageBucket: "whatashop-ef462.appspot.com", 
   messagingSenderId: "291121568560",
   appId: "1:291121568560:web:79ae47a1cf70f3197606f5"
 };
 
 let app: FirebaseApp | undefined;
-let db: any; // Use 'any' for db to avoid errors if app is undefined initially
+let db: any; 
 
-// Check if Firebase is already initialized to prevent re-initialization
 if (!getApps().length) {
-  // API key is now hardcoded from user, so primary check isn't strictly for presence
-  // but more for successful initialization.
   if (!firebaseConfig.apiKey || !firebaseConfig.projectId) {
-    // This case should ideally not be hit if config is correctly hardcoded.
-    // Kept for robustness, though the previous error was about permissions.
     console.error(
       "Firebase API Key or Project ID is missing in the hardcoded configuration. This is unexpected."
     );
@@ -32,11 +27,9 @@ if (!getApps().length) {
     db = getFirestore(app);
   } catch (error) {
     console.error("Firebase initialization error:", error);
-    // app and db might still be undefined if initialization fails
   }
 } else {
   app = getApps()[0];
-  // Ensure db is initialized if app was already initialized
   try {
     db = getFirestore(app);
   } catch (error) {
@@ -68,15 +61,20 @@ export async function getProducts(): Promise<Product[]> {
     return productList;
   } catch (error) {
     console.error("Error fetching products (check Firestore rules and internet connection): ", error);
-    // The error "Missing or insufficient permissions" typically indicates Firestore security rules issues.
     return []; 
   }
 }
 
-export async function addProductToFirestore(productData: ProductFormData): Promise<string | null> {
+interface AddProductResult {
+  productId: string | null;
+  error?: string;
+}
+
+export async function addProductToFirestore(productData: ProductFormData): Promise<AddProductResult> {
   if (!db) {
-    console.warn("Firestore is not initialized. Cannot add product.");
-    return null;
+    const errorMessage = "Firestore is not initialized. Cannot add product.";
+    console.warn(errorMessage);
+    return { productId: null, error: errorMessage };
   }
   try {
     const productsCol = collection(db, PRODUCTS_COLLECTION);
@@ -85,13 +83,15 @@ export async function addProductToFirestore(productData: ProductFormData): Promi
       price: Number(productData.price) // Ensure price is stored as a number
     };
     const docRef = await addDoc(productsCol, dataToSave);
-    return docRef.id;
-  } catch (error) {
-    console.error("Error adding product (check Firestore rules and internet connection): ", error);
-    // The error "Missing or insufficient permissions" typically indicates Firestore security rules issues.
-    return null; 
+    return { productId: docRef.id };
+  } catch (error: any) { // Catch as any to access error.message or other properties
+    const errorMessage = error.message || "Unknown error adding product to Firestore.";
+    console.error("Error adding product to Firestore (check Firestore rules, data, and internet connection): ", error);
+    // It's helpful to log the full error object or relevant parts like error.code if available
+    // For FirebaseError, error.code can be very informative (e.g., 'permission-denied')
+    const specificError = error.code ? `Firestore error (${error.code}): ${errorMessage}` : `Firestore error: ${errorMessage}`;
+    return { productId: null, error: specificError }; 
   }
 }
 
-// Export db instance if needed by other parts of the app, but be aware it might be undefined.
 export { db, app as firebaseApp };

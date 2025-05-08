@@ -25,18 +25,19 @@ export async function addProductAction(formData: ProductFormData) {
   }
 
   try {
-    const newProductId = await addProductToFirestore(validatedFields.data);
+    const { productId: newProductId, error: firestoreError } = await addProductToFirestore(validatedFields.data);
+    
     if (newProductId) {
       revalidatePath('/'); // Revalidate product list page
-      revalidatePath('/admin/add-product'); // Revalidate the add product page itself (e.g. for clearing form or redirect)
+      revalidatePath('/admin/add-product'); // Revalidate the add product page itself
       return { success: true, message: "Product added successfully!" };
     } else {
-      return { success: false, message: "Failed to add product to database." };
+      // Use the specific error from Firestore if available, otherwise a generic message.
+      return { success: false, message: firestoreError || "Failed to add product to database. An unknown error occurred." };
     }
-  } catch (error) {
-    console.error("addProductAction error:", error);
-    // Ensure the message is a string
+  } catch (error) { // This catch block handles errors within addProductAction itself or if addProductToFirestore re-throws an error.
+    console.error("addProductAction unexpected error:", error);
     const errorMessage = error instanceof Error ? error.message : String(error);
-    return { success: false, message: `Failed to add product: ${errorMessage}` };
+    return { success: false, message: `Action failed: ${errorMessage}` };
   }
 }
