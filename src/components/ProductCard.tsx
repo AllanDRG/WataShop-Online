@@ -26,7 +26,6 @@ export default function ProductCard({ product }: ProductCardProps) {
       setStorePhoneNumber(phone);
     } else {
       console.warn("NEXT_PUBLIC_STORE_PHONE_NUMBER is not set. WhatsApp button will be disabled or may not work.");
-      // setStorePhoneNumber(''); // Already default
     }
     
     // Ensure imageUrl is set, fallback if empty or different from current state
@@ -35,7 +34,7 @@ export default function ProductCard({ product }: ProductCardProps) {
         setCurrentImageUrl(newImageUrl);
     }
 
-  }, [product.imageUrl, currentImageUrl]); // Added currentImageUrl to dependencies to avoid stale closure if product.imageUrl changes externally after initial load
+  }, [product.imageUrl, currentImageUrl]);
 
   const handleImageError = () => {
     if (currentImageUrl !== FALLBACK_IMAGE_URL) { // Avoid infinite loop if fallback itself fails
@@ -55,11 +54,12 @@ export default function ProductCard({ product }: ProductCardProps) {
           <Image
             src={currentImageUrl}
             alt={product.name}
-            layout="fill"
-            objectFit="cover"
+            fill={true}
+            style={{ objectFit: "cover" }}
             className="transition-transform duration-300 group-hover:scale-105"
             onError={handleImageError}
-            data-ai-hint={currentImageUrl === FALLBACK_IMAGE_URL ? "placeholder image" : "product image"}
+            unoptimized={true} // Serve the image as-is from the URL
+            data-ai-hint={currentImageUrl === FALLBACK_IMAGE_URL ? "placeholder image" : (product.name ? product.name.split(" ").slice(0,2).join(" ") : "product image")}
           />
         </div>
       </CardHeader>
