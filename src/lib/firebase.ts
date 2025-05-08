@@ -11,31 +11,40 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
-// Validate essential configuration
-if (!firebaseConfig.apiKey) {
-  throw new Error(
-    "Firebase API Key (NEXT_PUBLIC_FIREBASE_API_KEY) is not configured. Please set it in your .env.local file."
-  );
-}
-if (!firebaseConfig.projectId) {
-  throw new Error(
-    "Firebase Project ID (NEXT_PUBLIC_FIREBASE_PROJECT_ID) is not configured. Please set it in your .env.local file."
-  );
-}
+let app: FirebaseApp | undefined;
+let db: any; // Use 'any' for db to avoid errors if app is undefined initially
 
-
-let app: FirebaseApp;
+// Check if Firebase is already initialized to prevent re-initialization
 if (!getApps().length) {
-  app = initializeApp(firebaseConfig);
+  // Validate essential configuration only if we are about to initialize
+  // This helps avoid build errors if env vars are set only at runtime.
+  if (!firebaseConfig.apiKey || !firebaseConfig.projectId) {
+    console.warn(
+      "Firebase API Key or Project ID is not configured. Features relying on Firebase may not work. Please check your .env.local file."
+    );
+    // app and db will remain undefined, functions using them should handle this
+  } else {
+    try {
+      app = initializeApp(firebaseConfig);
+      db = getFirestore(app);
+    } catch (error) {
+      console.error("Firebase initialization error:", error);
+      // app and db might still be undefined if initialization fails
+    }
+  }
 } else {
   app = getApps()[0];
+  db = getFirestore(app);
 }
 
-const db = getFirestore(app);
 
 const PRODUCTS_COLLECTION = 'products';
 
 export async function getProducts(): Promise<Product[]> {
+  if (!db) {
+    console.warn("Firestore is not initialized. Cannot fetch products.");
+    return [];
+  }
   try {
     const productsCol = collection(db, PRODUCTS_COLLECTION);
     const productSnapshot = await getDocs(productsCol);
@@ -52,16 +61,17 @@ export async function getProducts(): Promise<Product[]> {
     return productList;
   } catch (error) {
     console.error("Error fetching products: ", error);
-    // In a real app, you might want to throw the error or handle it more gracefully
-    // For now, returning empty array and logging helps identify if this is the source of an issue on the page
     return []; 
   }
 }
 
 export async function addProductToFirestore(productData: ProductFormData): Promise<string | null> {
+  if (!db) {
+    console.warn("Firestore is not initialized. Cannot add product.");
+    return null;
+  }
   try {
     const productsCol = collection(db, PRODUCTS_COLLECTION);
-    // Ensure price is stored as a number if it's coming from a form
     const dataToSave = {
       ...productData,
       price: Number(productData.price)
@@ -70,9 +80,9 @@ export async function addProductToFirestore(productData: ProductFormData): Promi
     return docRef.id;
   } catch (error) {
     console.error("Error adding product: ", error);
-    // In a real app, you might want to throw the error or handle it more gracefully
     return null; 
   }
 }
 
-export { db };
+// Export db instance if needed by other parts of the app, but be aware it might be undefined.
+export { db, app as firebaseApp };
