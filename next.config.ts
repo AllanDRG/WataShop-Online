@@ -16,6 +16,20 @@ const nextConfig: NextConfig = {
         port: '',
         pathname: '/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'via.placeholder.com', // Added for placeholder images
+        port: '',
+        pathname: '/**',
+      },
+      // Add other hostnames if your product images come from different sources
+      // For example, if you use a CDN like Cloudinary:
+      // {
+      //   protocol: 'https',
+      //   hostname: 'res.cloudinary.com',
+      //   port: '',
+      //   pathname: '/**',
+      // },
     ],
   },
 };
