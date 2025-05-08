@@ -5,6 +5,7 @@ import type { Product, ProductFormData } from '@/types/product';
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
   authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  databaseURL: process.env.NEXT_PUBLIC_FIREBASE_DATABASE_URL, // Added databaseURL
   projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
   storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
   messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
@@ -34,7 +35,12 @@ if (!getApps().length) {
   }
 } else {
   app = getApps()[0];
-  db = getFirestore(app);
+  // Ensure db is initialized if app was already initialized
+  try {
+    db = getFirestore(app);
+  } catch (error) {
+     console.error("Firebase getFirestore error on re-init:", error);
+  }
 }
 
 
@@ -74,7 +80,7 @@ export async function addProductToFirestore(productData: ProductFormData): Promi
     const productsCol = collection(db, PRODUCTS_COLLECTION);
     const dataToSave = {
       ...productData,
-      price: Number(productData.price)
+      price: Number(productData.price) // Ensure price is stored as a number
     };
     const docRef = await addDoc(productsCol, dataToSave);
     return docRef.id;

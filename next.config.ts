@@ -18,15 +18,23 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: 'https',
-        hostname: 'via.placeholder.com', // Added for placeholder images
+        hostname: 'via.placeholder.com',
         port: '',
         pathname: '/**',
       },
-      // Add other hostnames if your product images come from different sources
-      // For example, if you use a CDN like Cloudinary:
+      // Example for Firebase Storage if you construct URLs directly.
+      // If using getDownloadURL(), the hostname can vary, consider a more general pattern or ensure stable URLs.
+      // For default bucket: <project-id>.appspot.com
+      {
+        protocol: 'https',
+        hostname: 'whatashop-ef462.appspot.com', // Use the actual project ID from .env
+        port: '',
+        pathname: '/**',
+      },
+      // For other buckets or custom domains, add them here.
       // {
       //   protocol: 'https',
-      //   hostname: 'res.cloudinary.com',
+      //   hostname: 'firebasestorage.googleapis.com', // General Google Storage, might be too broad
       //   port: '',
       //   pathname: '/**',
       // },
