@@ -22,22 +22,21 @@ const nextConfig: NextConfig = {
         port: '',
         pathname: '/**',
       },
-      // Example for Firebase Storage if you construct URLs directly.
-      // If using getDownloadURL(), the hostname can vary, consider a more general pattern or ensure stable URLs.
-      // For default bucket: <project-id>.appspot.com
+      // Firebase Storage for whatashop-ef462 project
       {
         protocol: 'https',
-        hostname: 'whatashop-ef462.appspot.com', // Use the actual project ID from .env
+        hostname: 'firebasestorage.googleapis.com', // General Google Storage host
+        port: '',
+        // Path prefix for the specific bucket for this project
+        pathname: '/v0/b/whatashop-ef462.appspot.com/o/**',
+      },
+      // Fallback for direct gs:// URL style if constructed manually, less common for next/image
+      {
+        protocol: 'https',
+        hostname: 'whatashop-ef462.appspot.com',
         port: '',
         pathname: '/**',
-      },
-      // For other buckets or custom domains, add them here.
-      // {
-      //   protocol: 'https',
-      //   hostname: 'firebasestorage.googleapis.com', // General Google Storage, might be too broad
-      //   port: '',
-      //   pathname: '/**',
-      // },
+      }
     ],
   },
 };

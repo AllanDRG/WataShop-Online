@@ -2,14 +2,15 @@ import { initializeApp, getApps, FirebaseApp } from 'firebase/app';
 import { getFirestore, collection, getDocs, addDoc, doc, DocumentData, QueryDocumentSnapshot } from 'firebase/firestore';
 import type { Product, ProductFormData } from '@/types/product';
 
+// Configuration directly from user prompt
 const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  databaseURL: process.env.NEXT_PUBLIC_FIREBASE_DATABASE_URL, // Added databaseURL
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+  apiKey: "AIzaSyC5k9GIA0MHZWlpDwerHVwFkpEVb_YzRCA",
+  authDomain: "whatashop-ef462.firebaseapp.com",
+  databaseURL: "https://whatashop-ef462-default-rtdb.firebaseio.com",
+  projectId: "whatashop-ef462",
+  storageBucket: "whatashop-ef462.appspot.com", // Corrected from firebasestorage.app
+  messagingSenderId: "291121568560",
+  appId: "1:291121568560:web:79ae47a1cf70f3197606f5"
 };
 
 let app: FirebaseApp | undefined;
@@ -17,21 +18,21 @@ let db: any; // Use 'any' for db to avoid errors if app is undefined initially
 
 // Check if Firebase is already initialized to prevent re-initialization
 if (!getApps().length) {
-  // Validate essential configuration only if we are about to initialize
-  // This helps avoid build errors if env vars are set only at runtime.
+  // API key is now hardcoded from user, so primary check isn't strictly for presence
+  // but more for successful initialization.
   if (!firebaseConfig.apiKey || !firebaseConfig.projectId) {
-    console.warn(
-      "Firebase API Key or Project ID is not configured. Features relying on Firebase may not work. Please check your .env.local file."
+    // This case should ideally not be hit if config is correctly hardcoded.
+    // Kept for robustness, though the previous error was about permissions.
+    console.error(
+      "Firebase API Key or Project ID is missing in the hardcoded configuration. This is unexpected."
     );
-    // app and db will remain undefined, functions using them should handle this
-  } else {
-    try {
-      app = initializeApp(firebaseConfig);
-      db = getFirestore(app);
-    } catch (error) {
-      console.error("Firebase initialization error:", error);
-      // app and db might still be undefined if initialization fails
-    }
+  }
+  try {
+    app = initializeApp(firebaseConfig);
+    db = getFirestore(app);
+  } catch (error) {
+    console.error("Firebase initialization error:", error);
+    // app and db might still be undefined if initialization fails
   }
 } else {
   app = getApps()[0];
@@ -66,7 +67,8 @@ export async function getProducts(): Promise<Product[]> {
     });
     return productList;
   } catch (error) {
-    console.error("Error fetching products: ", error);
+    console.error("Error fetching products (check Firestore rules and internet connection): ", error);
+    // The error "Missing or insufficient permissions" typically indicates Firestore security rules issues.
     return []; 
   }
 }
@@ -85,7 +87,8 @@ export async function addProductToFirestore(productData: ProductFormData): Promi
     const docRef = await addDoc(productsCol, dataToSave);
     return docRef.id;
   } catch (error) {
-    console.error("Error adding product: ", error);
+    console.error("Error adding product (check Firestore rules and internet connection): ", error);
+    // The error "Missing or insufficient permissions" typically indicates Firestore security rules issues.
     return null; 
   }
 }
