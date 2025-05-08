@@ -14,26 +14,17 @@ interface ProductCardProps {
 
 // Fallback image if product.imageUrl is empty or invalid
 const FALLBACK_IMAGE_URL = "https://via.placeholder.com/400x400.png?text=No+Image"; 
+const FIXED_STORE_PHONE_NUMBER = "573001234567"; // Fixed store phone number
 
 export default function ProductCard({ product }: ProductCardProps) {
-  const [storePhoneNumber, setStorePhoneNumber] = useState('');
   const [currentImageUrl, setCurrentImageUrl] = useState(product.imageUrl || FALLBACK_IMAGE_URL);
 
   useEffect(() => {
-    // Access environment variable only on the client side
-    const phone = process.env.NEXT_PUBLIC_STORE_PHONE_NUMBER;
-    if (phone) {
-      setStorePhoneNumber(phone);
-    } else {
-      console.warn("NEXT_PUBLIC_STORE_PHONE_NUMBER is not set. WhatsApp button will be disabled or may not work.");
-    }
-    
     // Ensure imageUrl is set, fallback if empty or different from current state
     const newImageUrl = product.imageUrl || FALLBACK_IMAGE_URL;
     if (newImageUrl !== currentImageUrl) {
         setCurrentImageUrl(newImageUrl);
     }
-
   }, [product.imageUrl, currentImageUrl]);
 
   const handleImageError = () => {
@@ -43,9 +34,7 @@ export default function ProductCard({ product }: ProductCardProps) {
   };
 
   const whatsappMessage = `Hola, me interesa el producto: ${product.name}`;
-  const whatsappUrl = storePhoneNumber 
-    ? `https://wa.me/${storePhoneNumber}?text=${encodeURIComponent(whatsappMessage)}`
-    : '#'; // Fallback href if phone number is not set
+  const whatsappUrl = `https://wa.me/${FIXED_STORE_PHONE_NUMBER}?text=${encodeURIComponent(whatsappMessage)}`;
 
   return (
     <Card className="flex flex-col overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 rounded-lg group">
@@ -58,7 +47,7 @@ export default function ProductCard({ product }: ProductCardProps) {
             style={{ objectFit: "cover" }}
             className="transition-transform duration-300 group-hover:scale-105"
             onError={handleImageError}
-            unoptimized={true} // Serve the image as-is from the URL
+            unoptimized={true} 
             data-ai-hint={currentImageUrl === FALLBACK_IMAGE_URL ? "placeholder image" : (product.name ? product.name.split(" ").slice(0,2).join(" ") : "product image")}
           />
         </div>
@@ -76,13 +65,11 @@ export default function ProductCard({ product }: ProductCardProps) {
         <Button 
           asChild 
           className="w-full bg-primary hover:bg-accent text-primary-foreground"
-          disabled={!storePhoneNumber} // Disable button if phone number is not set
         >
           <a 
             href={whatsappUrl} 
             target="_blank" 
             rel="noopener noreferrer" 
-            aria-disabled={!storePhoneNumber}
           >
             <MessageSquare className="mr-2 h-5 w-5" />
             Contactar por WhatsApp
