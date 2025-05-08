@@ -1,3 +1,4 @@
+
 import type {NextConfig} from 'next';
 
 const nextConfig: NextConfig = {
@@ -34,6 +35,12 @@ const nextConfig: NextConfig = {
       {
         protocol: 'https',
         hostname: 'whatashop-ef462.appspot.com',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'cdn.mos.cms.futurecdn.net',
         port: '',
         pathname: '/**',
       }
